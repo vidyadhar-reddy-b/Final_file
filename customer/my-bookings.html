@@ -441,154 +441,10 @@
         <button class="filter-tab" onclick="filterBookings(this,'cancelled')">Cancelled</button>
       </div>
 
-      <!-- Booking Cards -->
-      <div class="bookings-list" id="bookingsList">
+      <!-- Booking Cards — populated from localStorage DB -->
+      <div class="bookings-list" id="bookingsList"></div>
 
-        <!-- 1 -->
-        <div class="booking-card fade-up" data-status="confirmed" style="animation-delay:.04s">
-          <div class="booking-left">
-            <div class="booking-route-row">
-              <span class="booking-route">Mumbai → Pune</span>
-              <span class="status-badge status-confirmed">Confirmed</span>
-            </div>
-            <div class="booking-details">Royal Express · Seat A4 · 2026-03-15</div>
-            <div class="booking-pnr">PNR: RP1234567</div>
-          </div>
-          <div class="booking-right">
-            <div class="booking-actions">
-              <button class="btn-more" onclick="showToast('📄 Booking RP1234567 details loaded','success')">
-                More
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-              <div class="action-row">
-                <button class="btn-ticket" onclick="showToast('🎫 Ticket downloaded!','success')">⬇ Ticket</button>
-                <button class="btn-cancel-sm" onclick="window.location.href='cancel-ticket.html'">✕ Cancel</button>
-              </div>
-            </div>
-            <span class="booking-price">₹550</span>
-          </div>
-        </div>
-
-        <!-- 2 -->
-        <div class="booking-card fade-up" data-status="completed" style="animation-delay:.08s">
-          <div class="booking-left">
-            <div class="booking-route-row">
-              <span class="booking-route">Delhi → Agra</span>
-              <span class="status-badge status-completed">Completed</span>
-            </div>
-            <div class="booking-details">Neeta Tours · Seat B2 · 2026-02-20</div>
-            <div class="booking-pnr">PNR: NT2345678</div>
-          </div>
-          <div class="booking-right">
-            <div class="booking-actions">
-              <button class="btn-more" onclick="showToast('📄 Booking NT2345678 details loaded','success')">
-                More
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-              <div class="action-row">
-                <button class="btn-ticket" onclick="showToast('🎫 Ticket downloaded!','success')">⬇ Ticket</button>
-                <button class="btn-cancel-sm" onclick="showToast('❌ Completed trips cannot be cancelled.','error')">✕
-                  Cancel</button>
-              </div>
-            </div>
-            <span class="booking-price">₹450</span>
-          </div>
-        </div>
-
-        <!-- 3 -->
-        <div class="booking-card is-cancelled fade-up" data-status="cancelled" style="animation-delay:.12s">
-          <div class="booking-left">
-            <div class="booking-route-row">
-              <span class="booking-route">Bangalore → Mysore</span>
-              <span class="status-badge status-cancelled">Cancelled</span>
-            </div>
-            <div class="booking-details">Orange Travels · Seat C1 · 2026-01-10</div>
-            <div class="booking-pnr">PNR: OT3456789</div>
-          </div>
-          <div class="booking-right">
-            <div class="booking-actions">
-              <button class="btn-more" onclick="showToast('📄 Booking OT3456789 details loaded','success')">
-                More
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-              <div class="action-row">
-                <button class="btn-ticket">⬇ Ticket</button>
-                <button class="btn-cancel-sm">✕ Cancel</button>
-              </div>
-            </div>
-            <span class="booking-price">₹700</span>
-          </div>
-        </div>
-
-        <!-- 4 -->
-        <div class="booking-card fade-up" data-status="completed" style="animation-delay:.16s">
-          <div class="booking-left">
-            <div class="booking-route-row">
-              <span class="booking-route">Ongole → Chennai</span>
-              <span class="status-badge status-completed">Completed</span>
-            </div>
-            <div class="booking-details">Lahari · Seat C1 · 2026-01-10</div>
-            <div class="booking-pnr">PNR: OT3456766</div>
-          </div>
-          <div class="booking-right">
-            <div class="booking-actions">
-              <button class="btn-more" onclick="showToast('📄 Booking OT3456766 details loaded','success')">
-                More
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-              <div class="action-row">
-                <button class="btn-ticket" onclick="showToast('🎫 Ticket downloaded!','success')">⬇ Ticket</button>
-                <button class="btn-cancel-sm" onclick="showToast('❌ Completed trips cannot be cancelled.','error')">✕
-                  Cancel</button>
-              </div>
-            </div>
-            <span class="booking-price">₹700</span>
-          </div>
-        </div>
-
-        <!-- 5 -->
-        <div class="booking-card fade-up" data-status="confirmed" style="animation-delay:.20s">
-          <div class="booking-left">
-            <div class="booking-route-row">
-              <span class="booking-route">Guntur → Ongole</span>
-              <span class="status-badge status-confirmed">Confirmed</span>
-            </div>
-            <div class="booking-details">Prs Travels · Seat B1 · 2026-01-10</div>
-            <div class="booking-pnr">PNR: OT3456754</div>
-          </div>
-          <div class="booking-right">
-            <div class="booking-actions">
-              <button class="btn-more" onclick="showToast('📄 Booking OT3456754 details loaded','success')">
-                More
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                  stroke-linecap="round" stroke-linejoin="round">
-                  <path d="m9 18 6-6-6-6" />
-                </svg>
-              </button>
-              <div class="action-row">
-                <button class="btn-ticket" onclick="showToast('🎫 Ticket downloaded!','success')">⬇ Ticket</button>
-                <button class="btn-cancel-sm" onclick="window.location.href='cancel-ticket.html'">✕ Cancel</button>
-              </div>
-            </div>
-            <span class="booking-price">₹700</span>
-          </div>
-        </div>
-
-      </div><!-- /bookings-list -->
-
-      <div class="empty-state" id="emptyState">
+      <div class="empty-state" id="emptyState" style="display:none">
         <div class="empty-icon">🎫</div>
         <p class="empty-text">No bookings found for this filter.</p>
       </div>
@@ -596,17 +452,15 @@
   </main>
 
   <script>
-    /* ── Filter ── */
+    /* ── shared current filter ── */
+    let _activeFilter = 'all';
+
+    /* ── Filter tab handler (now re-renders from DB cache) ── */
     function filterBookings(btn, status) {
       document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
       btn.classList.add('active');
-      let visible = 0;
-      document.querySelectorAll('.booking-card').forEach(card => {
-        const match = status === 'all' || card.dataset.status === status;
-        card.style.display = match ? '' : 'none';
-        if (match) visible++;
-      });
-      document.getElementById('emptyState').style.display = visible === 0 ? 'block' : 'none';
+      _activeFilter = status;
+      renderBookings();
     }
 
     /* ── Toast ── */
@@ -623,14 +477,6 @@
         setTimeout(() => toast.remove(), 400);
       }, 3000);
     }
-
-    /* ── Nav active state fix ── */
-    document.querySelectorAll('.nav-item').forEach(item => {
-      item.addEventListener('click', function () {
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        this.classList.add('active');
-      });
-    });
 
     /* ── Notification popup ── */
     document.getElementById('notifBtn').addEventListener('click', toggleNotif);
@@ -662,6 +508,133 @@
   <script src="../crud functions/js/script.js"></script>
   <script src="../crud functions/js/ui-shared.js"></script>
   <script src="../crud functions/js/ui-customer.js"></script>
+  <!-- ═══ DB-driven My Bookings renderer (runs after DB is ready) ═══ -->
+  <script>
+  (function initMyBookings() {
+    /* ── Helpers ── */
+    function getCustomerId() {
+      return sessionStorage.getItem('c2b_loggedInId')
+          || localStorage.getItem('c2b_loggedInId')
+          || 'C001'; // demo fallback
+    }
+
+    function statusClass(s) {
+      const map = {
+        CONFIRMED: 'status-confirmed',
+        COMPLETED: 'status-completed',
+        CANCELLED: 'status-cancelled',
+        PENDING:   'status-pending'
+      };
+      return map[s] || 'status-pending';
+    }
+
+    function resolveRoute(booking) {
+      try {
+        const trip     = DB.trips.getById(booking.trip_id);
+        if (!trip.success) return 'Unknown Route';
+        const schedArr = DB.schedules.find(sc => sc.schedule_id === trip.data.schedule_id);
+        if (!schedArr.length) return 'Unknown Route';
+        const routeArr = DB.routes.find(r => r.route_id === schedArr[0].route_id);
+        if (!routeArr.length) return 'Unknown Route';
+        return routeArr[0].source + ' → ' + routeArr[0].destination;
+      } catch(e) { return 'Unknown Route'; }
+    }
+
+    function resolveDate(booking) {
+      try {
+        const trip     = DB.trips.getById(booking.trip_id);
+        if (!trip.success) return booking.booking_date;
+        const schedArr = DB.schedules.find(sc => sc.schedule_id === trip.data.schedule_id);
+        return schedArr.length ? schedArr[0].journey_date : booking.booking_date;
+      } catch(e) { return booking.booking_date; }
+    }
+
+    function resolveFare(booking) {
+      try {
+        const pays = DB.payments.find(p => p.booking_id === booking.booking_id);
+        return pays.length ? pays[0].amount : 0;
+      } catch(e) { return 0; }
+    }
+
+    /* ── Card builder ── */
+    function buildCard(b, idx) {
+      const route    = resolveRoute(b);
+      const date     = resolveDate(b);
+      const fare     = resolveFare(b);
+      const status   = b.booking_status;          // e.g. 'CONFIRMED'
+      const statusLo = status.toLowerCase();       // for data-status attr
+      const isCancellable = ['CONFIRMED','PENDING'].includes(status);
+      const isCancelled   = status === 'CANCELLED';
+      const isCompleted   = status === 'COMPLETED';
+
+      const cancelBtn = isCancellable
+        ? `<button class="btn-cancel-sm" onclick="quickCancel('${b.booking_id}',this)">✕ Cancel</button>`
+        : `<button class="btn-cancel-sm" disabled style="opacity:.4;cursor:not-allowed">✕ Cancel</button>`;
+
+      return `
+        <div class="booking-card fade-up ${isCancelled ? 'is-cancelled' : ''}" data-status="${statusLo}" data-id="${b.booking_id}" style="animation-delay:${idx * 0.06}s">
+          <div class="booking-left">
+            <div class="booking-route-row">
+              <span class="booking-route">${route}</span>
+              <span class="status-badge ${statusClass(status)}">${status.charAt(0) + status.slice(1).toLowerCase()}</span>
+            </div>
+            <div class="booking-details">Booking Date: ${b.booking_date} · ${date}</div>
+            <div class="booking-pnr">ID: ${b.booking_id}</div>
+          </div>
+          <div class="booking-right">
+            <div class="booking-actions">
+              <button class="btn-more" onclick="showToast('📄 Booking ${b.booking_id} details loaded','success')">
+                More
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </button>
+              <div class="action-row">
+                <button class="btn-ticket" onclick="showToast('🎫 Ticket for ${b.booking_id} downloaded!','success')">⬇ Ticket</button>
+                ${cancelBtn}
+              </div>
+            </div>
+            <span class="booking-price">₹${fare.toLocaleString('en-IN')}</span>
+          </div>
+        </div>`;
+    }
+
+    /* ── Main render ── */
+    window.renderBookings = function() {
+      const customerId = getCustomerId();
+      const list       = document.getElementById('bookingsList');
+      const empty      = document.getElementById('emptyState');
+
+      let bookings = DB.bookings.find(b => b.customer_id === customerId);
+
+      // Apply active filter
+      if (_activeFilter !== 'all') {
+        bookings = bookings.filter(b => b.booking_status.toLowerCase() === _activeFilter);
+      }
+
+      if (!bookings.length) {
+        list.innerHTML = '';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      list.innerHTML = bookings.map((b, i) => buildCard(b, i)).join('');
+    };
+
+    /* ── Quick cancel from booking card ── */
+    window.quickCancel = function(bookingId, btn) {
+      if (!confirm('Cancel booking ' + bookingId + '? This cannot be undone.')) return;
+      const result = DB.cancelBooking(bookingId);
+      if (result.success) {
+        showToast('✅ Booking ' + bookingId + ' cancelled. Refund initiated.', 'success');
+        renderBookings(); // re-render from live DB
+      } else {
+        showToast('❌ ' + (result.error || 'Could not cancel booking.'), 'error');
+      }
+    };
+
+    /* ── Boot ── */
+    renderBookings();
+  })();
+  </script>
 </body>
 
 </html>

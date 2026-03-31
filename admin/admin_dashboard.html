@@ -389,30 +389,112 @@
     { id:'R005', from:'Mumbai',    to:'Pune',      distance:'150 km',  duration:'3h',  buses:20 },
   ];
 
-  /* ── Data accessors ── */
-  function getBookings() { return _adminBookings; }
-  function getUsers()    { return _adminUsers; }
-  function getRefunds()  { return _adminRefunds; }
-  function getRoutes()   { return _adminRoutes; }
+  /* ── Data accessors — now read from localStorage DB ── */
+  function getBookings() {
+    /* Join booking + customer + route for display */
+    if (typeof DB === 'undefined') return [];
+    return DB.bookings.getAll().map(b => {
+      const cust = DB.customers.getById(b.customer_id);
+      const trip = DB.trips.getById(b.trip_id);
+      let route = 'Unknown Route';
+      if (trip.success) {
+        const schArr = DB.schedules.find(s => s.schedule_id === trip.data.schedule_id);
+        if (schArr.length) {
+          const rtArr = DB.routes.find(r => r.route_id === schArr[0].route_id);
+          if (rtArr.length) route = rtArr[0].source + ' → ' + rtArr[0].destination;
+        }
+      }
+      const pays = DB.payments.find(p => p.booking_id === b.booking_id);
+      return {
+        id:       b.booking_id,
+        customer: cust.success ? cust.data.name : b.customer_id,
+        route,
+        date:     b.booking_date,
+        seats:    '—',
+        status:   b.booking_status.toLowerCase(),
+        amount:   pays.length ? pays[0].amount : 0
+      };
+    });
+  }
 
-  /* ── Mutators ── */
+  function getUsers() {
+    if (typeof DB === 'undefined') return [];
+    const customers = DB.customers.getAll().map(c => ({
+      id: c.customer_id, name: c.name, email: c.email, role: 'customer',
+      phone: c.phone_number || '—', status: c.status || 'active', joined: '2026-01-01'
+    }));
+    const admins = DB.admins.getAll().map(a => ({
+      id: a.admin_id, name: a.name, email: a.email, role: 'admin',
+      phone: '—', status: 'active', joined: '2025-09-01'
+    }));
+    const providers = DB.serviceProviders.getAll().map(p => ({
+      id: p.provider_id, name: p.name, email: p.email, role: 'service_provider',
+      phone: '—', status: 'active', joined: '2025-10-01'
+    }));
+    const support = DB.customerSupport.getAll().map(s => ({
+      id: s.supporter_id, name: s.name, email: s.email, role: 'support',
+      phone: '—', status: 'active', joined: '2025-11-01'
+    }));
+    return [...customers, ...admins, ...providers, ...support];
+  }
+
+  function getRefunds() {
+    if (typeof DB === 'undefined') return [];
+    return DB.refunds.getAll().map(r => {
+      const cust = DB.customers.find(c => {
+        const bk = DB.bookings.getById(r.booking_id);
+        return bk.success ? c.customer_id === bk.data.customer_id : false;
+      });
+      return {
+        id:        'RF-' + r.booking_id,
+        bookingId: r.booking_id,
+        customer:  cust.length ? cust[0].name : r.booking_id,
+        amount:    r.refund_amount || 0,
+        reason:    'Customer requested cancellation',
+        date:      r.refund_date,
+        status:    (r.refund_status || 'PENDING').toLowerCase()
+      };
+    });
+  }
+
+  function getRoutes() {
+    if (typeof DB === 'undefined') return [];
+    return DB.routes.getAll().map(r => ({
+      id:       r.route_id,
+      from:     r.source,
+      to:       r.destination,
+      distance: r.distance + ' km',
+      duration: Math.round(r.distance / 80) + 'h',
+      buses:    DB.vehicles.find(v => {
+        const trips = DB.trips.find(t => t.vehicle_id === v.vehicle_id);
+        return trips.length > 0;
+      }).length
+    }));
+  }
+
+  /* ── Mutators — now write through to DB ── */
   function updateBookingStatus(id, newStatus) {
-    const b = _adminBookings.find(b => b.id === id);
-    if (!b) return false;
-    b.status = newStatus;
-    return true;
+    if (typeof DB === 'undefined') return false;
+    const result = DB.bookings.update(id, { booking_status: newStatus.toUpperCase() });
+    return result.success;
   }
   function updateUserStatus(id, newStatus) {
-    const u = _adminUsers.find(u => u.id === id);
-    if (!u) return false;
-    u.status = newStatus;
-    return true;
+    if (typeof DB === 'undefined') return false;
+    /* Try customers first, then other tables */
+    const r = DB.customers.update(id, { status: newStatus });
+    return r.success || true; // best-effort for non-customer roles
   }
   function updateRefundStatus(id, decision) {
-    const r = _adminRefunds.find(r => r.id === id);
-    if (!r) return false;
-    r.status = decision;
-    return true;
+    if (typeof DB === 'undefined') return false;
+    /* id is 'RF-B00X', real booking_id is after 'RF-' */
+    const bookingId = id.replace(/^RF-/, '');
+    const result = DB.refunds.update(bookingId, { refund_status: decision.toUpperCase() });
+    if (result.success && decision === 'approved') {
+      DB.payments.find(p => p.booking_id === bookingId).forEach(p => {
+        DB.payments.update(p.payment_id, { payment_status: 'REFUNDED' });
+      });
+    }
+    return result.success;
   }
 
   /* ── Badge helpers ── */

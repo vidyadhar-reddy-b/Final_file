@@ -448,8 +448,33 @@
   function saveProfile() {
     const name  = document.getElementById('editName').value.trim();
     const email = document.getElementById('editEmail').value.trim();
-    if (name)  document.getElementById('displayName').textContent  = name.split(' ')[0];
-    if (email) document.getElementById('displayEmail').textContent = email;
+    const phone = document.getElementById('editPhone').value.trim();
+    if (!name) { showToast('⚠️ Name cannot be empty.', 'error'); return; }
+
+    /* ── Persist to localStorage via DB ── */
+    const customerId = sessionStorage.getItem('c2b_loggedInId')
+                    || localStorage.getItem('c2b_loggedInId')
+                    || 'C001';
+    if (typeof DB !== 'undefined') {
+      DB.customers.update(customerId, {
+        name:         name,
+        email:        email,
+        phone_number: phone.replace(/[^\d]/g, '')
+      });
+    }
+
+    /* ── Update visible DOM immediately ── */
+    const firstName = name.split(' ')[0];
+    const dispName  = document.getElementById('displayName');
+    const dispEmail = document.getElementById('displayEmail');
+    if (dispName)  dispName.textContent  = firstName;
+    if (dispEmail) dispEmail.textContent = email;
+
+    /* Update big avatar initials */
+    const ini = name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const bigAv = document.querySelector('.profile-big-avatar');
+    if (bigAv) bigAv.childNodes[0].textContent = ini;
+
     closeModal('editModal');
     showToast('✅ Profile updated successfully!', 'success');
   }
@@ -497,29 +522,58 @@
   }
 </script>
 <script src="auth.js"></script>
-<script>
-  // Also update the profile page's big avatar and name area
-  window.addEventListener('DOMContentLoaded', function() {
-    const name = sessionStorage.getItem('c2b_userName') || localStorage.getItem('c2b_userName') || '';
-    if (!name) return;
-    const ini = name.trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0,2);
-    // Big avatar
-    const bigAv = document.querySelector('.profile-big-avatar');
-    if (bigAv) bigAv.childNodes[0].textContent = ini;
-    // Display name under big avatar
-    const dispName = document.getElementById('displayName');
-    if (dispName) dispName.textContent = name.split(' ')[0];
-    // Pre-fill edit modal
-    const editName = document.getElementById('editName');
-    if (editName) editName.value = name;
-  });
-</script>
-
   <!-- ═══ CRUD Engine (localStorage + Data Manager panel) ═══ -->
   <script src="../crud functions/js/mock_data.js"></script>
   <script src="../crud functions/js/script.js"></script>
   <script src="../crud functions/js/ui-shared.js"></script>
   <script src="../crud functions/js/ui-customer.js"></script>
+  <!-- ═══ DB-driven Profile loader (runs after DB is ready) ═══ -->
+  <script>
+  (function initProfile() {
+    function getCustomerId() {
+      return sessionStorage.getItem('c2b_loggedInId')
+          || localStorage.getItem('c2b_loggedInId')
+          || 'C001';
+    }
+
+    const customerId = getCustomerId();
+    const result     = DB.customers.getById(customerId);
+    const customer   = result.success ? result.data : null;
+
+    if (!customer) return; // no record found
+
+    /* ── Compute initials ── */
+    const ini = (customer.name || '').trim().split(/\s+/).map(w => w[0]).join('').toUpperCase().slice(0, 2) || 'C';
+
+    /* ── Big avatar ── */
+    const bigAv = document.querySelector('.profile-big-avatar');
+    if (bigAv && bigAv.childNodes[0]) bigAv.childNodes[0].textContent = ini;
+
+    /* ── Display name & email below avatar ── */
+    const dispName  = document.getElementById('displayName');
+    const dispEmail = document.getElementById('displayEmail');
+    if (dispName)  dispName.textContent  = customer.name.split(' ')[0];
+    if (dispEmail) dispEmail.textContent = customer.email;
+
+    /* ── Stats row ── */
+    const bookings = DB.bookings.find(b => b.customer_id === customerId);
+    const completed = bookings.filter(b => b.booking_status === 'COMPLETED').length;
+    const cancelled = bookings.filter(b => b.booking_status === 'CANCELLED').length;
+
+    const statEls = document.querySelectorAll('.stat-value');
+    if (statEls[0]) statEls[0].textContent = bookings.length;  // Total trips
+    if (statEls[1]) statEls[1].textContent = completed;         // Completed
+    if (statEls[2]) statEls[2].textContent = cancelled;         // Cancelled
+
+    /* ── Pre-fill edit modal ── */
+    const editName  = document.getElementById('editName');
+    const editEmail = document.getElementById('editEmail');
+    const editPhone = document.getElementById('editPhone');
+    if (editName)  editName.value  = customer.name;
+    if (editEmail) editEmail.value = customer.email;
+    if (editPhone) editPhone.value = customer.phone_number || '';
+  })();
+  </script>
 </body>
 </html>
 

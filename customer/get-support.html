@@ -302,13 +302,35 @@
   }
 
   function submitRequest() {
-    const desc = document.getElementById('issueDesc').value.trim();
+    const desc      = document.getElementById('issueDesc').value.trim();
+    const bookingId = document.getElementById('bookingId').value.trim();
     if (!desc) {
       showToast('⚠️ Please describe your issue before submitting.', 'error');
       return;
     }
-    // Generate a random ticket ID
-    const ticketId = 'TKT-' + Math.floor(10000 + Math.random() * 90000);
+
+    /* ── Persist to DB ── */
+    let ticketId = 'TKT-' + Math.floor(10000 + Math.random() * 90000);
+    try {
+      if (typeof DB !== 'undefined') {
+        const customerId  = sessionStorage.getItem('c2b_loggedInId')
+                         || localStorage.getItem('c2b_loggedInId')
+                         || 'C001';
+        const supporterId = DB.customerSupport.getAll()[0]?.supporter_id || 'S001';
+        ticketId = 'REQ-' + Date.now().toString(36).toUpperCase();
+        DB.supportRequests.create({
+          request_id:   ticketId,
+          customer_id:  customerId,
+          supporter_id: supporterId,
+          description:  (selectedIssue + ': ' + desc).slice(0, 500),
+          status:       'OPEN',
+          created_date: new Date().toISOString().split('T')[0]
+        });
+      }
+    } catch(e) {
+      console.warn('[Support] DB create failed:', e);
+    }
+
     document.getElementById('generatedTicketId').textContent = ticketId;
     showView('success');
   }

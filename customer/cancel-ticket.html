@@ -497,6 +497,7 @@
 </main>
 
 <script>
+  /* ── State ── */
   let activeTicket = {};
 
   function showView(id) {
@@ -505,25 +506,44 @@
     document.querySelector('.main-content').scrollTo({ top: 0, behavior: 'smooth' });
   }
 
-  function selectTicket(route, bus, date, pnr, amount) {
-    const fee    = 50;
-    const refund = amount - fee;
-    activeTicket = { route, bus, date, pnr, amount, fee, refund };
+  /* selectTicket is now called with a full booking object from the DB renderer below */
+  function selectTicket(bookingId, route, fare) {
+    const CANCEL_FEE = 50;
+    const refund     = Math.max(0, fare - CANCEL_FEE);
+    activeTicket = { bookingId, route, fare, fee: CANCEL_FEE, refund };
 
-    document.getElementById('infoRoute').textContent     = route;
-    document.getElementById('infoBus').textContent       = bus;
-    document.getElementById('infoDate').textContent      = date;
-    document.getElementById('infoPNR').textContent       = pnr;
-    document.getElementById('cancelAmount').textContent  = '₹' + amount;
-    document.getElementById('cancelFee').textContent     = '−₹' + fee;
-    document.getElementById('cancelRefund').textContent  = '₹' + refund;
+    document.getElementById('infoRoute').textContent    = route;
+    document.getElementById('infoBus').textContent      = 'Click2Book';
+    document.getElementById('infoDate').textContent     = new Date().toISOString().split('T')[0];
+    document.getElementById('infoPNR').textContent      = bookingId;
+    document.getElementById('cancelAmount').textContent = '₹' + fare;
+    document.getElementById('cancelFee').textContent    = '−₹' + CANCEL_FEE;
+    document.getElementById('cancelRefund').textContent = '₹' + refund;
 
     showView('confirm');
   }
 
   function confirmCancel() {
+    if (!activeTicket.bookingId) return;
+    const result = DB.cancelBooking(activeTicket.bookingId);
+    if (!result.success) {
+      showToast('❌ ' + (result.error || 'Cancellation failed.'), 'error');
+      return;
+    }
+    /* Create refund record */
+    try {
+      DB.refunds.create({
+        booking_id:    activeTicket.bookingId,
+        admin_id:      'A001',
+        refund_amount: activeTicket.refund,
+        refund_status: 'PENDING',
+        refund_date:   new Date().toISOString().split('T')[0]
+      });
+    } catch(e) {}
     document.getElementById('doneRefund').textContent = '₹' + activeTicket.refund;
     showView('done');
+    /* Re-render ticket list in background so it's fresh if user goes back */
+    if (typeof renderTicketList === 'function') renderTicketList();
   }
 
   function showToast(message, type) {
@@ -567,6 +587,70 @@
   <script src="../crud functions/js/script.js"></script>
   <script src="../crud functions/js/ui-shared.js"></script>
   <script src="../crud functions/js/ui-customer.js"></script>
+  <!-- ═══ DB-driven Cancel Ticket renderer ═══ -->
+  <script>
+  (function initCancelTicket() {
+    function getCustomerId() {
+      return sessionStorage.getItem('c2b_loggedInId')
+          || localStorage.getItem('c2b_loggedInId')
+          || 'C001';
+    }
+
+    function resolveRoute(booking) {
+      try {
+        const trip = DB.trips.getById(booking.trip_id);
+        if (!trip.success) return 'Unknown Route';
+        const sch = DB.schedules.find(s => s.schedule_id === trip.data.schedule_id)[0];
+        if (!sch) return 'Unknown Route';
+        const rt  = DB.routes.find(r => r.route_id === sch.route_id)[0];
+        return rt ? rt.source + ' → ' + rt.destination : 'Unknown Route';
+      } catch(e) { return 'Unknown Route'; }
+    }
+
+    function resolveFare(booking) {
+      try {
+        const pays = DB.payments.find(p => p.booking_id === booking.booking_id);
+        return pays.length ? pays[0].amount : 500;
+      } catch(e) { return 500; }
+    }
+
+    window.renderTicketList = function() {
+      const customerId = getCustomerId();
+      const container  = document.querySelector('.ticket-list');
+      if (!container) return;
+
+      const cancellable = DB.bookings.find(
+        b => b.customer_id === customerId &&
+             ['CONFIRMED','PENDING'].includes(b.booking_status)
+      );
+
+      if (!cancellable.length) {
+        container.innerHTML = `<p style="color:#64748b;font-size:.88rem;padding:12px 0">No cancellable bookings found.</p>`;
+        return;
+      }
+
+      container.innerHTML = cancellable.map(b => {
+        const route    = resolveRoute(b);
+        const fare     = resolveFare(b);
+        const safeRoute = route.replace(/'/g, '&#39;');
+        return '<div class="ticket-row" onclick="selectTicket(\'' + b.booking_id + '\',\'' + safeRoute + '\',' + fare + ')">'
+          + '<div class="ticket-info">'
+          + '<div class="ticket-route">' + route + '</div>'
+          + '<div class="ticket-meta">Booking date: ' + b.booking_date + '</div>'
+          + '<div class="ticket-pnr">ID: ' + b.booking_id + '</div>'
+          + '</div>'
+          + '<div class="ticket-right">'
+          + '<span class="ticket-price">&#8377;' + fare.toLocaleString('en-IN') + '</span>'
+          + '<div class="ticket-arrow"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></div>'
+          + '</div>'
+          + '</div>';
+      }).join('');
+
+    };
+
+    renderTicketList();
+  })();
+  </script>
 </body>
 </html>
 
