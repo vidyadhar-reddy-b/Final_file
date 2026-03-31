@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Bookings | Click2Book</title>
+    <script src="https://unpkg.com/feather-icons"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="user-styles.css">
+    <link rel="stylesheet" href="user-dashboard.css">
+    <style>
+        .ticket-card {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            transition: border-color 0.2s;
+        }
+        .ticket-card.expanded {
+            border-color: var(--primary);
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.05);
+        }
+        .tc-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            border-bottom: 1px dashed var(--border);
+            padding-bottom: 1.5rem;
+        }
+        .tc-header-expanded { border-bottom: 1px solid #E5E7EB; }
+        .tc-route {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .tc-icon {
+            width: 24px; height: 24px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .tc-icon.green { background: #DCFCE7; color: #16A34A; }
+        .tc-icon.gray { background: #F3F4F6; color: #6B7280; }
+        .tc-icon.orange { background: #FFEDD5; color: #EA580C; }
+        
+        .tc-cities {
+            font-size: 1.25rem; font-weight: 800; color: #111827; margin: 0;
+            display: flex; align-items: center; gap: 0.25rem;
+        }
+        .tc-price-section {
+            text-align: right;
+        }
+        .tc-price {
+            font-size: 1.5rem; font-weight: 800; color: #111827; margin: 0;
+        }
+        .tc-seats-label {
+            font-size: 0.7rem; color: #6B7280; text-transform: uppercase; font-weight: 600;
+        }
+        
+        .tc-body {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        .t-detail-group h5 { margin: 0 0 0.5rem 0; font-size: 0.75rem; color: #6B7280; font-weight: 500; font-weight: 600;}
+        .t-detail-group p { margin: 0; font-size: 0.875rem; font-weight: 700; color: #111827; }
+        .t-detail-sub { font-size: 0.75rem; color: #9CA3AF; font-weight: 400 !important; }
+        
+        .tc-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .tc-meta {
+            display: flex; gap: 1rem; color: #6B7280; font-size: 0.8rem; font-weight: 500;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .tc-meta span { display: flex; align-items: center; gap: 0.25rem; }
+        .tc-meta strong { color: var(--primary); }
+        .tc-actions {
+            display: flex; gap: 0.75rem; flex-wrap: wrap;
+        }
+
+        /* Expanded State Details */
+        .tc-expanded-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-top: 2rem;
+            padding-top: 1.5rem;
+        }
+        .expand-col-title {
+            font-size: 0.875rem; font-weight: 700; color: #111827; margin: 0 0 1rem 0;
+            display: flex; align-items: center; gap: 0.5rem;
+        }
+        .expand-col-title svg { width: 16px; height: 16px; color: #6B7280; }
+        
+        .timeline-box { position: relative; padding-left: 24px; margin-bottom: 1.5rem; }
+        .timeline-box::before {
+            content: ''; position: absolute; left: 6px; top: 2px;
+            width: 12px; height: 12px; border-radius: 50%;
+        }
+        .timeline-box.t-start::before { background: #FFEDD5; border: 2px solid #F97316; }
+        .timeline-box.t-end::before { background: #DCFCE7; border: 2px solid #16A34A; }
+        .timeline-line {
+            position: absolute; left: 11px; top: 18px; bottom: -18px;
+            width: 2px; background: #E5E7EB; border-left: 2px dashed #D1D5DB;
+        }
+        .t-box-title { font-weight: 700; font-size: 0.875rem; margin: 0; }
+        .t-box-sub { font-size: 0.75rem; color: #6B7280; margin: 0; }
+        
+        .payment-details-list { list-style: none; padding: 0; margin: 0; }
+        .payment-details-list li {
+            display: flex; justify-content: space-between;
+            margin-bottom: 0.75rem; font-size: 0.875rem; color: #6B7280;
+        }
+        .payment-details-list li strong { color: #111827; }
+        
+        .tc-expanded-actions {
+            display: flex; gap: 1rem; margin-top: 2rem;
+        }
+        .btn-full-outline {
+            flex: 1; padding: 0.75rem; background: #FFF7ED; color: var(--primary); border: 1px solid var(--primary-light);
+            border-radius: 8px; font-weight: 600; text-align: center; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.875rem;
+        }
+        .btn-full-gray {
+            flex: 1; padding: 0.75rem; background: #F1F5F9; color: #475569; border: none;
+            border-radius: 8px; font-weight: 600; text-align: center; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 0.5rem; font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="user-dash-layout">
+        <!-- Sidebar -->
+        <aside class="user-sidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="icon"><i data-feather="truck" style="color: white; width: 18px; height: 18px;"></i></div>
+                    <div class="text">CLICK<span style="color:var(--primary);">2</span>BOOK</div>
+                </div>
+                <i data-feather="menu" style="color: white; cursor: pointer;"></i>
+            </div>
+            
+            <div class="sidebar-profile">
+                <div class="avatar">RS</div>
+                <div class="info">
+                    <h4>Customer Profile</h4>
+                    <p>Premium Member</p>
+                </div>
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="search-trains.html" class="nav-link nav-item">
+                    <i data-feather="search"></i> Search Trips
+                </a>
+                <a href="my-bookings.html" class="nav-link nav-item active">
+                    <i data-feather="book"></i> My Bookings
+                </a>
+                <a href="cancel-ticket.html" class="nav-link nav-item">
+                    <i data-feather="x"></i> Cancel Ticket
+                </a>
+                <a href="get-support.html" class="nav-link nav-item">
+                    <i data-feather="headphones"></i> Get Support
+                </a>
+                <a href="my-profile.html" class="nav-link nav-item">
+                    <i data-feather="user"></i> My Profile
+                </a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <a href="login train.html" class="nav-link nav-item">
+                    <i data-feather="log-out"></i> Logout
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content -->
+        <div class="user-main-content">
+            <div class="top-header">
+                <div class="page-titles">
+                    <h1>My Bookings</h1>
+                    <p>Welcome back, Rahul!</p>
+                </div>
+                <div class="notification-bell">
+                    <i data-feather="bell"></i>
+                </div>
+            </div>
+            
+            <div class="dashboard-wrapper" style="max-width: 900px;">
+                
+                <!-- Expanded Ticket Card (Mumbai -> Pune) -->
+                <div class="ticket-card expanded">
+                    <div class="tc-header tc-header-expanded">
+                        <div class="tc-route">
+                            <div class="tc-icon orange"><i data-feather="check" style="width: 14px; height: 14px;"></i></div>
+                            <h3 class="tc-cities">Mumbai <i data-feather="arrow-right" style="width: 18px; color: #9CA3AF;"></i> Pune</h3>
+                            <span class="status-badge orange">Confirmed</span>
+                        </div>
+                        <div class="tc-price-section">
+                            <h3 class="tc-price">&#8377;1100</h3>
+                            <span class="tc-seats-label">2 Seats</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tc-body">
+                        <div class="t-detail-group">
+                            <h5>Service</h5>
+                            <p>Royal Express</p>
+                            <span class="t-detail-sub">Volvo AC Sleeper</span>
+                        </div>
+                        <div class="t-detail-group">
+                            <h5>Journey Date</h5>
+                            <p><i data-feather="calendar" style="width: 14px; height: 14px;"></i> 2026-03-15</p>
+                            <span class="t-detail-sub">22:30 - 02:45</span>
+                        </div>
+                    </div>
+                    
+                    <div class="tc-footer" style="margin-top: 1rem;">
+                        <div class="tc-meta">
+                            <span><i data-feather="map-pin" style="width: 14px; height: 14px;"></i> Seat: <strong>A4, A5</strong></span>
+                            <span style="color:#D1D5DB;">|</span>
+                            <span>PNR: <strong>RP1234567</strong></span>
+                            <span style="color:#D1D5DB;">|</span>
+                            <span>Booked: 2026-03-08</span>
+                        </div>
+                        <div class="tc-actions">
+                            <button class="btn-sm-orange"><i data-feather="download"></i> Download</button>
+                            <button class="btn-sm-gray">Less <i data-feather="chevron-up"></i></button>
+                            <button class="btn-sm-gray" style="background:#FEE2E2; color:#EF4444;"><i data-feather="x"></i> Cancel</button>
+                        </div>
+                    </div>
+                    
+                    <div class="tc-expanded-content">
+                        <div class="expand-left">
+                            <h4 class="expand-col-title"><i data-feather="map-pin"></i> Boarding & Dropping</h4>
+                            
+                            <div class="timeline-box t-start">
+                                <div class="timeline-line"></div>
+                                <p class="t-box-title">Boarding Point</p>
+                                <p class="t-box-sub">Dadar East<br>at 22:30</p>
+                            </div>
+                            
+                            <div class="timeline-box t-end">
+                                <p class="t-box-title">Dropping Point</p>
+                                <p class="t-box-sub">Swargate<br>at 02:45</p>
+                            </div>
+                        </div>
+                        
+                        <div class="expand-right">
+                            <h4 class="expand-col-title"><i data-feather="user"></i> Passenger & Payment</h4>
+                            <ul class="payment-details-list">
+                                <li><span>Passenger Name:</span> <strong>Rahul Sharma</strong></li>
+                                <li><span>Contact:</span> <strong>+91 98765 43210</strong></li>
+                            </ul>
+                            <div style="height: 1rem;"></div>
+                            <ul class="payment-details-list">
+                                <li><span>Payment Mode:</span> <strong>UPI</strong></li>
+                                <li><span>Transaction ID:</span> <strong>TXN1234567890</strong></li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div class="tc-expanded-actions">
+                        <button class="btn-full-outline"><i data-feather="phone"></i> Contact Support</button>
+                        <button class="btn-full-gray"><i data-feather="mail"></i> Email Ticket</button>
+                    </div>
+                </div>
+
+                <!-- Collapsed Card 1 -->
+                <div class="ticket-card" style="border-left: 3px solid #16A34A;">
+                    <div class="tc-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                        <div style="flex: 1;">
+                            <div class="tc-route">
+                                <div class="tc-icon green"><i data-feather="check" style="width: 14px; height: 14px;"></i></div>
+                                <h3 class="tc-cities">Delhi <i data-feather="arrow-right" style="width: 18px; color: #9CA3AF;"></i> Agra</h3>
+                                <span class="status-badge green">Completed</span>
+                            </div>
+                            <div class="tc-body" style="margin-top: 1.5rem;">
+                                <div class="t-detail-group">
+                                    <h5>Service</h5>
+                                    <p>Neeta Tours</p>
+                                    <span class="t-detail-sub">AC Seater</span>
+                                </div>
+                                <div class="t-detail-group">
+                                    <h5>Journey Date</h5>
+                                    <p><i data-feather="calendar" style="width: 14px; height: 14px;"></i> 2026-02-20</p>
+                                    <span class="t-detail-sub">06:00 - 09:30</span>
+                                </div>
+                            </div>
+                            <div class="tc-meta" style="margin-top: 1.5rem;">
+                                <span><i data-feather="map-pin" style="width: 14px; height: 14px;"></i> Seat: <strong>B2</strong></span>
+                                <span style="color:#D1D5DB;">|</span>
+                                <span>PNR: <strong style="color: var(--primary);">NT2345678</strong></span>
+                                <span style="color:#D1D5DB;">|</span>
+                                <span>Booked: 2026-02-15</span>
+                            </div>
+                        </div>
+                        
+                        <div class="tc-price-section" style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <h3 class="tc-price" style="margin-bottom: 0.25rem;">&#8377;450</h3>
+                            <span class="tc-seats-label" style="margin-bottom: 2rem;">1 Seat</span>
+                            <div class="tc-actions" style="flex-direction: column; width: 100%;">
+                                <button class="btn-sm-orange" style="justify-content: center;"><i data-feather="download"></i> Download</button>
+                                <button class="btn-sm-gray" style="justify-content: center;">More <i data-feather="chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Collapsed Card 2 -->
+                <div class="ticket-card" style="border-left: 3px solid #6B7280; opacity: 0.8;">
+                    <div class="tc-header" style="border-bottom: none; margin-bottom: 0; padding-bottom: 0;">
+                        <div style="flex: 1;">
+                            <div class="tc-route">
+                                <div class="tc-icon gray"><i data-feather="x" style="width: 14px; height: 14px;"></i></div>
+                                <h3 class="tc-cities">Bangalore <i data-feather="arrow-right" style="width: 18px; color: #9CA3AF;"></i> Mysore</h3>
+                                <span class="status-badge gray">Cancelled</span>
+                            </div>
+                            <div class="tc-body" style="margin-top: 1.5rem;">
+                                <div class="t-detail-group">
+                                    <h5>Service</h5>
+                                    <p>Orange Travels</p>
+                                    <span class="t-detail-sub">Non-AC Sleeper</span>
+                                </div>
+                                <div class="t-detail-group">
+                                    <h5>Journey Date</h5>
+                                    <p><i data-feather="calendar" style="width: 14px; height: 14px;"></i> 2026-01-10</p>
+                                    <span class="t-detail-sub">14:00 - 17:30</span>
+                                </div>
+                            </div>
+                            <div class="tc-meta" style="margin-top: 1.5rem;">
+                                <span><i data-feather="map-pin" style="width: 14px; height: 14px;"></i> Seat: <strong>C1</strong></span>
+                                <span style="color:#D1D5DB;">|</span>
+                                <span>PNR: <strong style="color: var(--primary);">OT3456789</strong></span>
+                                <span style="color:#D1D5DB;">|</span>
+                                <span>Booked: 2026-01-05</span>
+                            </div>
+                        </div>
+                        
+                        <div class="tc-price-section" style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <h3 class="tc-price" style="margin-bottom: 0.25rem;">&#8377;700</h3>
+                            <span class="tc-seats-label" style="margin-bottom: 2rem;">1 Seat</span>
+                            <div class="tc-actions" style="flex-direction: column; width: 100%;">
+                                <button class="btn-sm-orange" style="justify-content: center;"><i data-feather="download"></i> Download</button>
+                                <button class="btn-sm-gray" style="justify-content: center;">More <i data-feather="chevron-right"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        feather.replace();
+    </script>
+</body>
+</html>
