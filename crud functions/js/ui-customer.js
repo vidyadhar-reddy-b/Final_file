@@ -176,3 +176,10 @@ const TABLE_SCHEMAS = {
 
 /* ── Bootstrap ────────────────────────────────────────────── */
 initUI("myBookings", "Customer Portal");
+
+/* ── Hide the Data Manager button on all customer pages ────── */
+(function() {
+  const style = document.createElement('style');
+  style.textContent = '#c2b-toggle-btn { display: none !important; }';
+  document.head.appendChild(style);
+})();
